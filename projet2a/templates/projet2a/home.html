@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+{% load static %}
+
+<head>
+    <title>projet2a soliton</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe" crossorigin="anonymous"></script>
+    
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.plot.ly/plotly-latest.min.css">
+</head>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+<div class="container" style="padding: 10px;">
+    <p class="main-title">
+        Solving the <a href="https://en.wikipedia.org/wiki/Nonlinear_Schr%C3%B6dinger_equation" target="_blank">Nonlinear Schrödinger Equation</a> 
+        using the <a href="https://en.wikipedia.org/wiki/Split-step_method" target="_blank">Split-Step Fourier Method</a> to model pulses through an optical fiber
+    </p>
+    <div style="text-align: center;font-size: 24px;">
+        \( \frac{\partial A}{\partial z} = -\frac{\alpha}{2} A - i\frac{\beta}{2} \frac{\partial^2 A}{\partial T^2} + i\gamma |A|^2 A \)
+    </div>
+        
+    
+    <div>
+        This nonlinear partial differential equation models how the envelope and phase of light pulse changes when propagating through an optical fiber, 
+        when taking power attenuation <strong>&alpha;</strong>, Group Velocity Dispersion <strong>&beta; </strong>
+        and waveguide nonlinearity <strong>&gamma;</strong> causing Self-Phase Modulation (SPM) into account.
+    </div>
+    <div class="row">
+        <div> &#8226; <strong> Source Code :</strong> <a href="" target="_blank">GitHub</a></div>
+        <div class="title" >Define Simulation Parameters</div>
+    </div>
+    <div class="col-lg-6 justify-content-center align-items-center">
+    <table>
+        <tr>
+            <td colspan="2">Number of Points : </td>
+            <td >{{ form.number_of_points }}</td>
+        </tr>
+        <tr style="margin-top: 5px; margin-bottom: 10px;" >
+            <td >Time Resolution: </td>
+            <td align="right">\( dt =\)</td>
+            <td >{{ form.time_resolution_1 }}</td>
+            <td class="e">e</td>
+            <td >{{ form.time_resolution_2 }}</td>
+            <td>&nbsp;(s)</td>
+        </tr>
+        
+        
+    </table>
+        </div>
+
+    <div class="row" style="margin-bottom: 0px;">
+        <div class="title" >Create a Pulse to be Simulated</div>
+        <div class="col-lg-4 justify-content-center align-items-center">
+            <div style="text-align: center;font-weight: bold;margin-bottom: 10px;">Gaussian pulse</div>
+            <div class="row justify-content-center align-items-center" style="text-align: center;font-size: 17px;">
+                <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+                <script>MathJax.typeset();</script>
+                <div id="equation">
+                    \( A \cdot \exp\left[-\left(\frac{1+j \cdot C_h}{2}\right)\left(\frac{t-t_0}{\tau}\right)^{2 \cdot m} - j \cdot 2 \pi f_c \cdot t\right] \)
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 justify-content-center align-items-center">
+            <div style="text-align: center;font-weight: bold;margin-bottom: 10px;">Sinc Pulse</div>
+            <div class="row justify-content-center align-items-center" style="text-align: center;font-size: 16px;">
+                <div id="equation">
+                    \( A \cdot \text{sinc}\left(\frac{t - t_0}{\tau}\right) \cdot \exp\left[-\left(\frac{1+j \cdot C_h}{2}\right)\left(\frac{t-t_0}{\tau}\right)^{2} - j \cdot 2 \pi f_c \cdot t\right] \)
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 justify-content-center align-items-center">
+            <div style="text-align: center;font-weight: bold;margin-bottom: 10px;">Sech pulse (Soliton)</div>
+            <div class="row justify-content-center align-items-center" style="text-align: center;font-size: 18px;height: 50px;">
+                <div id="equation">
+                    \( \frac{A}{\text{cosh}\left(\frac{t - t_0}{\tau}\right)} \cdot \exp\left[\frac{-j \cdot C_h}{2} \cdot \left(\frac{t-t_0}{\tau}\right)^{2} - j \cdot 2 \pi f_c \cdot t\right] \)
+                </div>
+                
+            </div>
+        
+       
+        </div>
+    </div>
+    <br>
+    <div class="row">
+        <div class="col-lg-5 justify-content-center align-items-center">
+            <table>
+                <tr>
+                    <td >Amplitude:</td>
+                    <td align="right">\( A =\)</td>
+                    <td >{{ form1.amplitude }} </td>
+                    <td>&nbsp; (W<sup>1/2</sup>)</td>
+                </tr>
+                <tr>
+                    <td >Time Offset:</td>
+                    <td align="right">\( t_0 =\)</td>
+                    <td >{{ form1.offset }} </td>
+                    <td>&nbsp; (s)</td>
+                </tr>
+                <tr>
+                    <td>Carrier frequency: </td>
+                    <td align="right">\( f_c =\)</td>
+                    <td >{{ form1.testCarrierFreq }}</td>
+                    <td>&nbsp; (Hz)</td>
+                </tr>
+                <tr>
+                    <td >Chirp </td>
+                    <td align="right">\( C_h =\)</td>
+                    <td >{{ form1.chirp }}</td>
+                </tr>
+                
+                <tr>
+                    <td>Order </td>
+                    <td align="right">\( m =\)</td>
+                    <td >{{ form1.order }}</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td >Duration: \(\tau =k \cdot dt; \)  </td>
+                    <td align="right">\( k =\)</td>
+                    <td >{{ form.duration_k }}</td>
+                </tr>
+
+                
+            </table>
+        
+            
+        </div>
+        <div class="col-lg-7 justify-content-center align-items-center">
+        <div class="row " >
+            <div style="margin-top: 10px;"><strong>&#8226; Choose a Pulse :</strong>&nbsp;{{ form1.pulse_type }}</div>
+            <div style="margin-top: 20px;">
+                <tr>
+                    <td>{{ form1.add_noise }} </td>
+                    <td><strong>Add Noise:</strong> Noise Amplitude \( = A / \)  {{ form1.noise_amplitude }}</td>
+                    
+                    
+                    
+                </tr>
+            </div>
+            <div style="margin-top: 10px;"><strong>&#8226; Plot :</strong></div>
+            <div style=" margin-top: 10px; margin-left: 50px;" >
+                <button type="submit" id="add-to-cart-button" class="btn btn-outline-secondary" formmethod="post" name="pulse">Pulse</button>
+                <button type="submit" id="add-to-cart-button" class="btn btn-outline-secondary " formmethod="post" name="spectrum">Spectrum</button>
+                <button type="submit" id="add-to-cart-button" class="btn btn-outline-secondary " formmethod="post" name="chirp_fig">Chirp</button>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    <div id="spectrum"></div>
+    <script>
+        var plotData = {{ plotly_json|safe }};
+        Plotly.newPlot('spectrum', plotData.data, plotData.layout);
+    </script>
+
+    <div id="pulse"></div>
+    <script>
+        var plotData = {{ pulse|safe }};
+
+        Plotly.newPlot('pulse', plotData.data, plotData.layout);
+    </script>
+
+    <div id="pltchirp"></div>
+    <script>
+        var plotData = {{ chirp_figure|safe }};
+
+        Plotly.newPlot('pltchirp', plotData.data, plotData.layout);
+    </script>
+
+    
+
+            
+                
+    
+   
+<div class="row">
+    <div class="title">Set Up Properties of the Fiber</div>
+    <p>
+        Pulses launched into an optical fiber will evolve according to the NLSE
+        When \( \beta \) is negative (anormalous dispersion), the term representing Group Velocity Dispersion<strong> (GVD) :</strong>
+        <a>
+            \( -i\frac{\beta}{2} \frac{\partial^2 A}{\partial T^2} \)
+        </a>
+        
+        will cause a <a style="color: blue;">positive (blue) chirp in the front</a> and a <a style="color: red;">negative (red) chirp in the back</a>.
+        Similarly, the term representing self-phase modulation <strong>(SPM) : </strong> 
+        <a>
+            \( i\gamma |A|^2 A \)
+        </a>
+        
+        will cause a <a style="color: red;">red chirp in the front</a> and a<a style="color: blue;"> blue chirp in the back</a>.
+        Since the chirp caused by GVD depends on the 2nd derivative (curvature) of the pulse, 
+        while the oppositely signed chirp of SPM depends on the squared amplitude of the pulse, we can ask the following question:
+        "Is there some pulse envelope, where the effects of GVD and SPM exactly cancel out, causing the pulse to retain its shape as it propagates?"
+        Such a pulse is called a <strong>"soliton"</strong>. The Sech Pulse is the pulse shape that corresponds to a
+        <a href="{% static 'pdfs/Fundamental soliton derivation.pdf' %}" target="_blank"> Fundamental soliton</a>.
+    </p>
+    <div class="col-lg-6 justify-content-center align-items-center">
+        <table>
+            <tr>
+                <td colspan="2">Number of Steps:</td>
+                <td >{{ form3.nsteps }}</td>
+            </tr>
+            <tr>
+                <td colspan="2">Length:</td>
+                <td >{{ form3.Length_a }}</td>
+                <td class="e">e</td>
+                <td >{{ form3.Length_b }}</td>
+                <td>(m)</td>
+            </tr>
+            
+            <tr>
+                <td  >Gamma: </td>
+                <td align="right">\( \gamma =\)</td>
+                <td>{{ form3.gamma_a }}</td>
+                <td class="e">e</td>
+                <td >{{ form3.gamma_b }}</td>
+                <td>(W<sup>-1</sup>.m<sup>-1</sup>)</td>
+            </tr>
+            <tr>
+                <td >Beta : </td>
+                <td align="right">\( \beta =\)</td>
+                <td>{{ form3.beta2_a }}</td>
+                <td class="e">e</td>
+                <td >{{ form3.beta2_b }}</td>
+                <td>(fs<sup>2</sup>.m<sup>-1</sup>)</td>
+            </tr>
+            <tr>
+                <td >Alpha :</td>
+                <td align="right">\( \alpha =\)</td>
+                <td >{{ form3.alpha_dB_per_m_a }}</td>
+                <td class="e">e</td>
+                <td >{{ form3.alpha_dB_per_m_b }}</td>
+                <td>(dB.m<sup>-1</sup>)</td>
+            </tr>
+            
+        </table>
+        <div style="margin-bottom: 0px; font-family: Verdana, Geneva, Tahoma, sans-serif; font-size: 15px;margin-top: 10px;">
+            &#8226; If <strong> Server Overload</strong>, try to reduce the Number of Steps of the Fiber,Number of Points of the Simulation 
+            And use Characteristic Fiber Length and Pulse Amplitude: 
+        
+        </div>
+        <table>
+            <tr>
+                <td>{{ form3.length_bool }} </td>
+                <td>&nbsp;Use Characteristic Length:</td>
+                <td style="font-size: 22px;">
+                    
+                        \( Z \cdot \frac{\pi}{2 \cdot \tau^2 \cdot |\beta|} \)
+                    
+                </td>
+                <td>;</td>
+                <td >&nbsp;&nbsp;\(Z =\)</td>
+                <td>{{ form3.length_charac }}</td>
+            </tr>
+            <tr>
+                <td>{{ form3.amplitude_bool }} </td>
+                <td>&nbsp;Use Characteristic Amplitude:</td>
+                <td style="font-size: 22px;">
+                        \( A \cdot \left( \frac{|\beta|}{\gamma \cdot \tau^2} \right)^{1/2} \)
+                        
+                   
+                </td>
+                <td>;</td>
+                <td>&nbsp;&nbsp;\( A =\)</td>
+                <td>{{ form3.amplitude_charac }}</td>
+            </tr>
+        </table>
+
+    </div>
+    <div class="col-lg-6 justify-content-center align-items-center ">
+        <div class="row" ><strong>&#8226; Plot :</strong></div>
+        <br>
+        <div class="row" >
+            <div class="col-md-4 " >
+                <button type="submit" id="plots" class="btn btn-outline-secondary"  formmethod="post" name="plotFirstAndLastPulse">First And Last Pulse</button>
+                <button type="submit" id="plots" class="btn btn-outline-secondary" formmethod="post" name="plotPulseMatrix2D">Pulse Matrix 2D</button>
+                <button type="submit" id="plots" class="btn btn-outline-secondary" formmethod="post" name="plotPulseMatrix3D">Pulse Matrix 3D</button>
+                
+            </div>
+            <div class="col-md-4">
+                <button type="submit" id="plots" class="btn btn-outline-secondary" formmethod="post" name="plotFirstAndLastSpectrum">First And Last Spectrum</button>
+                <button type="submit" id="plots" class="btn btn-outline-secondary"  formmethod="post" name="plotSpectrumMatrix2D">Spectrum Matrix 2D</button>
+                <button type="submit" id="plots" class="btn btn-outline-secondary"  formmethod="post" name="plotSpectrumMatrix3D">Spectrum Matrix 3D</button>
+                
+            </div>
+            <div class="col-md-4">
+                <button type="submit" id="plots" class="btn btn-outline-secondary" formmethod="post" name="plotFirstAndLastChirp">First And Last Chirp</button>
+                <button type="submit" id="plots" class="btn btn-outline-secondary" formmethod="post" name="plotPulseChirp2D">Pulse Chirp 2D</button>
+            </div>
+        </div>
+        <div class="row" style="margin-top: 10px;">
+            <button type="submit" id="plots" class="btn btn-outline-secondary" formmethod="post" name="animation">Make .gif animation of pulse evolution</button>
+        </div>
+    
+    </div>
+      
+       
+</div>
+
+
+<br>
+
+    {% if animation %}
+    <div >
+        <button type="submit" id="plots" class="btn btn-outline-secondary" formmethod="post" name="downloadgif">Download gif</button>
+    </div>
+    <div align="center">
+        <img src="{% static 'images/pulse_animation.gif' %}" alt="Chirp Animation" id="animation">
+    </div>
+    {% endif %}
+    
+
+<div id="plotly-first-last-pulse" style="margin-bottom: 10px;"></div>
+<script>
+    var plotData  = JSON.parse('{{ plotFirstAndLastPulse_fig | safe }}');
+    
+
+    Plotly.newPlot('plotly-first-last-pulse', plotData.data, plotData.layout);
+</script>
+
+<div id="plotly-first-last-spectrum" style="margin-bottom: 10px;"></div>
+<script>
+     var plotData  = JSON.parse('{{ plotFirstAndLastSpectrum_fig | safe }}');
+    Plotly.newPlot('plotly-first-last-spectrum', plotData.data, plotData.layout);
+</script>
+
+<div id="plotly-first-last-chirp" style="margin-bottom: 10px;"></div>
+<script>
+    var plotData  = JSON.parse('{{ plotFirstAndLastChirp_fig | escapejs }}');
+    
+
+    Plotly.newPlot('plotly-first-last-chirp', plotData.data, plotData.layout);
+</script>
+
+<div id="plotly-pulse-matrix-2d" style="margin-bottom: 10px;"></div>
+<script>
+    var data = {{ plotPulseMatrix2D_fig|safe }};
+    var layout = {
+        title: "Pulse Evolution (dB scale)",
+        xaxis: { title: 'Time [ps]' },
+        yaxis: { title: 'Distance [m]' },
+        
+    };
+
+    Plotly.newPlot('plotly-pulse-matrix-2d', data, layout);
+</script>
+
+<div id="plotly-spectrum-matrix-2d" style="margin-bottom: 10px;"></div>
+<script>
+    var data = {{ plotSpectrumMatrix2D_fig|safe }};
+    var layout = {
+        title: "spectrum Evolution (dB scale)",
+        xaxis: { title: 'Time [ps]' },
+        yaxis: { title: 'Distance [m]' },
+        
+    };
+
+    Plotly.newPlot('plotly-spectrum-matrix-2d', data, layout);
+</script>
+
+<div id="plotly-chirp-2d-plot" style="margin-bottom: 10px;"></div>
+<script>
+    var data = {{ plotPulseChirp2D_fig|safe }};
+    var layout = {
+        title: "Pulse Chirp Evolution",
+        xaxis: { title: 'Time [ps]' },
+        yaxis: { title: 'Distance [m]' },
+    };
+
+    Plotly.newPlot('plotly-chirp-2d-plot', data, layout);
+</script>
+
+
+<div id="plotly-pulse-matrix-3d-plot" style="margin-bottom: 10px;"></div>
+<script>
+    var data = {{ plotPulseMatrix3D_fig|safe }};
+    
+</script>
+
+
+<div id="plotly-spectrum-matrix-3d-plot" style="margin-bottom: 10px;"></div>
+<script>
+    var data = {{ plotSpectrumMatrix3D_fig|safe }};
+</script>
+
+</div>
+
+</form>
+<style>
+.title {
+    font-size: 20px;
+    font-weight: bold;
+    color: rgb(0, 0, 0);
+    text-decoration: none;
+    margin-bottom: 10px;
+    margin-top: 10px;
+    text-align: center;
+    background-color: #dddcdc;
+
+}
+
+
+.e {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    width: 40px;
+    height: 30px;
+    background-color: #ccc;
+    border: 1px solid #999;
+    cursor: pointer;
+}
+.e:hover {
+    background-color: #999;
+    color: white;
+}
+
+#add-to-cart-button {
+    background-color: rgb(208, 208, 208); 
+    color: rgb(0, 0, 0); 
+    height: 50px;
+    width: 30%;
+    margin-bottom: 5px;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+#add-to-cart-button:hover {
+    background-color: rgb(79, 79, 79); 
+    color: white; 
+}
+#plots {
+    background-color: rgb(208, 208, 208); 
+    color: rgb(0, 0, 0); 
+    height: 50px;
+    width: 100%;
+    margin-bottom: 10px;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+#plots:hover {
+    background-color: rgb(79, 79, 79); 
+    color: white; 
+}
+.main-title{
+    font-size: 22px;
+    font-weight: bold;
+    color: rgb(0, 0, 0);
+    text-decoration: none;
+    margin-top: 10px;
+    text-align: center;
+
+}
+
+
+
+</style>
+
