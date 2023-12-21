@@ -300,9 +300,9 @@ def home(request):
                     #Save animation as .gif
                     framerate=30 # Framerate of 30 will look smooth
                     writer = PillowWriter(fps=framerate)
-                    ani.save('projet2a/static/images/pulse_animation.gif',writer=writer)
+                    ani.save('projet2a/static/pulse_animation.gif',writer=writer)
                     plt.clf()
-                    shutil.copy('projet2a/static/images/pulse_animation.gif', 'staticfiles/images/pulse_animation.gif')
+                    shutil.copy('projet2a/static/pulse_animation.gif', 'staticfiles/pulse_animation.gif')
                     
                     context = {"form":form, "form1":form1,"form3":form3,'animation':True}
     else:
