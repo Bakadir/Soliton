@@ -25,7 +25,6 @@ class PulseForm(forms.Form):
     pulse_type = forms.ChoiceField(choices=PULSE_CHOICES)
     amplitude = forms.FloatField(required=False,initial=1)
    
-    offset = forms.FloatField(required=False,initial=0)
     chirp = forms.FloatField(required=False,initial=0)
     order = forms.IntegerField(required=False,initial=1)
     testCarrierFreq = forms.FloatField(required=False,initial=0)
