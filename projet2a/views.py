@@ -54,7 +54,7 @@ def home(request):
             time_resolution_2 = form.cleaned_data.get('time_resolution_2')
             duration_k = form.cleaned_data.get('duration_k')
             amplitude = form1.cleaned_data.get('amplitude')
-            offset = form1.cleaned_data.get('offset')
+            offset = 0
             chirp = form1.cleaned_data.get('chirp')
             order = form1.cleaned_data.get('order')
             testCarrierFreq = form1.cleaned_data.get('testCarrierFreq')
@@ -157,7 +157,7 @@ def home(request):
 
                 amplitude = form1.cleaned_data.get('amplitude')
                 
-                offset = form1.cleaned_data.get('offset')
+                offset = 0
                 chirp = form1.cleaned_data.get('chirp')
                 order = form1.cleaned_data.get('order')
                 testCarrierFreq = form1.cleaned_data.get('testCarrierFreq')
