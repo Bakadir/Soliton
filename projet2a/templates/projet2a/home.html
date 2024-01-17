@@ -60,7 +60,7 @@
                 <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
                 <script>MathJax.typeset();</script>
                 <div id="equation">
-                    \( A \cdot \exp\left[-\left(\frac{1+j \cdot C_h}{2}\right)\left(\frac{t-t_0}{\tau}\right)^{2 \cdot m} - j \cdot 2 \pi f_c \cdot t\right] \)
+                    \( A \cdot \exp\left[-\left(\frac{1+j \cdot C_h}{2}\right)\left(\frac{t}{\tau}\right)^{2 \cdot m} - j \cdot 2 \pi f_c \cdot t\right] \)
                 </div>
             </div>
         </div>
@@ -68,7 +68,7 @@
             <div style="text-align: center;font-weight: bold;margin-bottom: 10px;">Sinc Pulse</div>
             <div class="row justify-content-center align-items-center" style="text-align: center;font-size: 16px;">
                 <div id="equation">
-                    \( A \cdot \text{sinc}\left(\frac{t - t_0}{\tau}\right) \cdot \exp\left[-\left(\frac{1+j \cdot C_h}{2}\right)\left(\frac{t-t_0}{\tau}\right)^{2} - j \cdot 2 \pi f_c \cdot t\right] \)
+                    \( A \cdot \text{sinc}\left(\frac{t }{\tau}\right) \cdot \exp\left[-\left(\frac{1+j \cdot C_h}{2}\right)\left(\frac{t}{\tau}\right)^{2} - j \cdot 2 \pi f_c \cdot t\right] \)
                 </div>
             </div>
         </div>
@@ -76,7 +76,7 @@
             <div style="text-align: center;font-weight: bold;margin-bottom: 10px;">Sech pulse (Soliton)</div>
             <div class="row justify-content-center align-items-center" style="text-align: center;font-size: 18px;height: 50px;">
                 <div id="equation">
-                    \( \frac{A}{\text{cosh}\left(\frac{t - t_0}{\tau}\right)} \cdot \exp\left[\frac{-j \cdot C_h}{2} \cdot \left(\frac{t-t_0}{\tau}\right)^{2} - j \cdot 2 \pi f_c \cdot t\right] \)
+                    \( \frac{A}{\text{cosh}\left(\frac{t }{\tau}\right)} \cdot \exp\left[\frac{-j \cdot C_h}{2} \cdot \left(\frac{t}{\tau}\right)^{2} - j \cdot 2 \pi f_c \cdot t\right] \)
                 </div>
                 
             </div>
@@ -93,12 +93,6 @@
                     <td align="right">\( A =\)</td>
                     <td >{{ form1.amplitude }} </td>
                     <td>&nbsp; (W<sup>1/2</sup>)</td>
-                </tr>
-                <tr>
-                    <td >Time Offset:</td>
-                    <td align="right">\( t_0 =\)</td>
-                    <td >{{ form1.offset }} </td>
-                    <td>&nbsp; (s)</td>
                 </tr>
                 <tr>
                     <td>Carrier frequency: </td>
